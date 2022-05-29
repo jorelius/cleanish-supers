@@ -2,14 +2,15 @@ mod drivers;
 mod repositories;
 mod entities;
 mod api;
+mod settings;
 
+use uuid::Uuid;
+use std::time::Duration;
 use std::sync::RwLock;
 use std::sync::Arc;
-use crate::repositories::Repository;
-use axum::extract::Path;
-use crate::drivers::db::memory::InMemoryDB;
-use crate::repositories::supers::SupersRepository;
+
 use axum::{
+    extract::Path,
     routing::{get, post, delete},
     http::StatusCode,
     response::IntoResponse,
@@ -17,14 +18,18 @@ use axum::{
     error_handling::HandleErrorLayer,
     Extension,
 };
-
 use tower::{BoxError, ServiceBuilder};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use uuid::Uuid;
-use std::time::Duration;
+
 use crate::entities::supers::Super;
 use api::models;
+use crate::drivers::db::memory::InMemoryDB;
+use crate::repositories::supers::SupersRepository;
+use crate::repositories::Repository;
+
+
+use settings::Settings;
 
 #[tokio::main]
 async fn main() {
@@ -36,8 +41,14 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
+    // load configuration
+    let settings = Settings::new();
+
     // setup the database
     let db = Arc::new(RwLock::new(SupersRepository::<InMemoryDB>::new(InMemoryDB::new())));
+
+    // load default supers
+    load_bulk_super_data(&db, settings.unwrap().supers);
 
     // build our application with a single route
     let app = Router::new()
@@ -111,4 +122,10 @@ async fn create_super(
     // this will be converted into a JSON response
     // with a status code of `201 Created`
     (StatusCode::CREATED, Json(models::CreateSuperResponse { id: sup.id }))
+}
+
+fn load_bulk_super_data(db: &Arc<RwLock<SupersRepository<InMemoryDB>>>, supers: Vec<Super>) {
+    for supr in supers {
+        db.write().unwrap().create(&supr);
+    }
 }

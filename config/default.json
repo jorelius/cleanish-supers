@@ -1,0 +1,19 @@
+{
+    "supers": [
+        {
+            "id": "789dd711-ce1b-41f5-b638-246de7ec8dc3",
+            "name": "Clark Kent",
+            "powers": "Flight, Super Strength, Heat Vision, Frost Breath"
+        },
+        {
+            "id": "f9b8f8f8-f8b8-4f8f-b8f8-f8f8f8f7f7f7f",
+            "name": "Bruce Wayne",
+            "powers": "Money"
+        },
+        {
+            "id": "f9b8f8f8-f8b8-4f8f-b8f8-f8f8f8f6f6f6f",
+            "name": "Peter Parker",
+            "powers": "Webs, Spider-Sense, Super Strength, "
+        }
+    ]
+}
