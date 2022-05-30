@@ -43,21 +43,18 @@ impl<D: Sized> Repository<Super> for SupersRepository<D> where D: DBDriver {
 }
 
 fn convert_super_to_str(s: &Super) -> Result<String, RepositoryError> {
-    let super_str = format!("{}:{}:{}", s.id, s.name, s.powers);
-    Ok(super_str)
+    match serde_json::to_string(&s) {
+        Ok(supr) => Ok(supr),
+        Err(e) => Err(format!("{}", e))
+    }
 }
+    
 
 fn convert_str_to_super(super_str: &str) -> Result<Super, RepositoryError> {
-    let parts = super_str.split(':').collect::<Vec<&str>>();
-    if parts.len() != 3 {
-        return Err(format!("Invalid Super from DB: {}", super_str.to_string()));
+    match serde_json::from_str(super_str) {
+        Ok(supr) => Ok(supr),
+        Err(e) => Err(format!("{}", e))
     }
-
-    Ok(Super {
-        id: parts[0].to_string(),
-        name: parts[1].to_string(),
-        powers: parts[2].to_string(),
-    })
 }
 
 
