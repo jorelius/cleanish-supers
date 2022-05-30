@@ -1,5 +1,5 @@
 use config::{Config, ConfigError, Environment, File};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::env;
 
 use crate::entities::supers::Super;

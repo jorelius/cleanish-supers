@@ -22,14 +22,12 @@ use tower::{BoxError, ServiceBuilder};
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::entities::supers::Super;
-use api::models;
+use crate::api::models;
 use crate::drivers::db::memory::InMemoryDB;
+use crate::entities::supers::Super;
 use crate::repositories::supers::SupersRepository;
 use crate::repositories::Repository;
-
-
-use settings::Settings;
+use crate::settings::Settings;
 
 #[tokio::main]
 async fn main() {

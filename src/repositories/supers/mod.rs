@@ -49,7 +49,6 @@ fn convert_super_to_str(s: &Super) -> Result<String, RepositoryError> {
     }
 }
     
-
 fn convert_str_to_super(super_str: &str) -> Result<Super, RepositoryError> {
     match serde_json::from_str(super_str) {
         Ok(supr) => Ok(supr),
