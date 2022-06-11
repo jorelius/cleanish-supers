@@ -15,6 +15,6 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 diesel = { version = "1.4.4", features = ["sqlite"] }
 dotenv = "0.15.0"
 tower = { version = "0.4", features = ["util", "timeout"] }
-tower-http = { version = "0.3.0", features = ["add-extension", "trace"] }
+tower-http = { version = "0.3.0", features = ["add-extension", "trace", "request-id"] }
 uuid = { version = "1.0", features = ["serde", "v4"] }
 config = "0.13.1"

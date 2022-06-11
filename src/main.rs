@@ -3,31 +3,36 @@ mod repositories;
 mod entities;
 mod api;
 mod settings;
+mod usecases;
 
-use uuid::Uuid;
 use std::time::Duration;
 use std::sync::RwLock;
 use std::sync::Arc;
 
 use axum::{
-    extract::Path,
     routing::{get, post, delete},
-    http::StatusCode,
-    response::IntoResponse,
-    Json, Router,
+    http::StatusCode, Router,
     error_handling::HandleErrorLayer,
     Extension,
 };
 use tower::{BoxError, ServiceBuilder};
-use tower_http::trace::TraceLayer;
+use tower_http::{
+    ServiceBuilderExt,
+    trace::{TraceLayer, DefaultMakeSpan, DefaultOnResponse}
+};
+use tower_http::request_id::MakeRequestUuid;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::api::models;
 use crate::drivers::db::memory::InMemoryDB;
 use crate::entities::supers::Super;
 use crate::repositories::supers::SupersRepository;
 use crate::repositories::Repository;
 use crate::settings::Settings;
+
+use crate::usecases::get_all_supers;
+use crate::usecases::create_super;
+use crate::usecases::get_super;
+use crate::usecases::delete_super;
 
 #[tokio::main]
 async fn main() {
@@ -51,11 +56,21 @@ async fn main() {
     // build our application with a single route
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
-        .route("/supers", get(get_all_supers).post(create_super))
-        .route("/supers/:id", get(get_super).delete(|id: String| async { id }))
+        .route("/supers", get(get_all_supers::execute).post(create_super::execute))
+        .route("/supers/:id", get(get_super::execute).delete(delete_super::execute))
         // Add middleware to all routes
         .layer(
             ServiceBuilder::new()
+                // make sure to set request ids before the request reaches `TraceLayer`
+                .set_x_request_id(MakeRequestUuid{})
+                // log requests and responses
+                .layer(
+                    TraceLayer::new_for_http()
+                        .make_span_with(DefaultMakeSpan::new().include_headers(true))
+                        .on_response(DefaultOnResponse::new().include_headers(true))
+                )
+                // propagate the header to the response before the response reaches `TraceLayer`
+                .propagate_x_request_id()
                 .layer(HandleErrorLayer::new(|error: BoxError| async move {
                     if error.is::<tower::timeout::error::Elapsed>() {
                         Ok(StatusCode::REQUEST_TIMEOUT)
@@ -72,54 +87,11 @@ async fn main() {
                 .into_inner(),
         );
 
-
-
     // run it with hyper on localhost:3000
     axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
         .serve(app.into_make_service())
         .await
         .unwrap();
-}
-
-async fn get_all_supers(
-    Extension(db): Extension<Arc<RwLock<SupersRepository<InMemoryDB>>>>,
-) -> impl IntoResponse {
-    let suprs = db.write().unwrap().find_all().unwrap();
-
-    // this will be converted into a JSON response
-    // with a status code of `201 Created`
-    (StatusCode::OK, Json(suprs))
-}
-
-async fn get_super(
-    Path(id): Path<String>,
-    Extension(db): Extension<Arc<RwLock<SupersRepository<InMemoryDB>>>>,
-) -> impl IntoResponse {
-    let supr = db.read().unwrap().find_by_id(&id).unwrap();
-
-    // this will be converted into a JSON response
-    // with a status code of `201 Created`
-    (StatusCode::OK, Json(models::GetSuperResponse { id: supr.id, name: supr.name, powers: supr.powers }))
-}
-
-async fn create_super(
-    Json(payload): Json<models::CreateSuper>,
-    Extension(db): Extension<Arc<RwLock<SupersRepository<InMemoryDB>>>>,
-) -> impl IntoResponse {
-    // insert your application logic here
-    let sup = Super {
-        id: Uuid::new_v4().to_string(),
-        name: payload.name,
-        powers: payload.powers,
-    };
-
-    db.write().unwrap().create(&sup).unwrap();
-
-    // use repo
-
-    // this will be converted into a JSON response
-    // with a status code of `201 Created`
-    (StatusCode::CREATED, Json(models::CreateSuperResponse { id: sup.id }))
 }
 
 fn load_bulk_super_data(db: &Arc<RwLock<SupersRepository<InMemoryDB>>>, supers: Vec<Super>) {
