@@ -1,4 +1,3 @@
-use uuid::Uuid;
 use std::sync::RwLock;
 use std::sync::Arc;
 
@@ -9,28 +8,26 @@ use axum::{
     Extension,
 };
 
+use supers_core::drivers::db::memory::InMemoryDB;
+use supers_core::repositories::supers::SupersRepository;
+use supers_core::usecases;
+
 use crate::api::models;
-use crate::drivers::db::memory::InMemoryDB;
-use crate::repositories::supers::SupersRepository;
-use crate::repositories::Repository;
-use crate::entities::supers::Super;
 
 pub(crate) async fn execute(
     Json(payload): Json<models::CreateSuper>,
     Extension(db): Extension<Arc<RwLock<SupersRepository<InMemoryDB>>>>,
 ) -> impl IntoResponse {
-    // insert your application logic here
-    let sup = Super {
-        id: Uuid::new_v4().to_string(),
+    let obj = usecases::create_super::CreateSuper {
         name: payload.name,
         powers: payload.powers,
     };
 
-    db.write().unwrap().create(&sup).unwrap();
+    let id = usecases::create_super::execute(obj, db).await;
 
     // use repo
 
     // this will be converted into a JSON response
     // with a status code of `201 Created`
-    (StatusCode::CREATED, Json(models::CreateSuperResponse { id: sup.id }))
+    (StatusCode::CREATED, Json(models::CreateSuperResponse { id: id }))
 }

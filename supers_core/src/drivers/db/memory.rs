@@ -34,10 +34,10 @@ impl DBDriver for InMemoryDB {
         }
     }
 
-    fn update(&mut self, id: &str, item: &str) -> Result<(), String> { 
+    fn update(&mut self, id: &str, item: &str) -> Result<(), String> {
         self.data.insert(id.to_string(), item.to_string());
         Ok(())
-     }
+    }
 
     fn delete(&mut self, id: &str) -> Result<(), String> {
         match self.data.remove(id) {
@@ -47,9 +47,5 @@ impl DBDriver for InMemoryDB {
     }
 }
 
-
 #[cfg(test)]
-mod tests {
-    
-
-}
+mod tests {}

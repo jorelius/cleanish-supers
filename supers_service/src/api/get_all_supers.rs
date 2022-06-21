@@ -8,14 +8,14 @@ use axum::{
     Extension,
 };
 
-use crate::drivers::db::memory::InMemoryDB;
-use crate::repositories::supers::SupersRepository;
-use crate::repositories::Repository;
+use supers_core::drivers::db::memory::InMemoryDB;
+use supers_core::repositories::supers::SupersRepository;
+use supers_core::usecases;
 
 pub(crate) async fn execute(
     Extension(db): Extension<Arc<RwLock<SupersRepository<InMemoryDB>>>>,
 ) -> impl IntoResponse {
-    let suprs = db.write().unwrap().find_all().unwrap();
+    let suprs = usecases::get_all_supers::execute(db).await;
 
     // this will be converted into a JSON response
     // with a status code of `200 Ok`

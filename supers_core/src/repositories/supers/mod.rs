@@ -1,21 +1,29 @@
-
-use crate::repositories::RepositoryError;
+use crate::drivers::db::DBDriver;
 use crate::entities::supers::Super;
 use crate::repositories::Repository;
-use crate::drivers::db::DBDriver;
+use crate::repositories::RepositoryError;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct SupersRepository<D: Sized> where D: DBDriver {
-    db: D
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SupersRepository<D: Sized>
+where
+    D: DBDriver,
+{
+    db: D,
 }
 
-impl<D: Sized> SupersRepository<D> where D: DBDriver {
+impl<D: Sized> SupersRepository<D>
+where
+    D: DBDriver,
+{
     pub fn new(db: D) -> Self {
         Self { db }
     }
 }
 
-impl<D: Sized> Repository<Super> for SupersRepository<D> where D: DBDriver {
+impl<D: Sized> Repository<Super> for SupersRepository<D>
+where
+    D: DBDriver,
+{
     fn find_all(&mut self) -> Result<Vec<Super>, RepositoryError> {
         let supers = self.db.retrieve_all().unwrap();
         supers.iter().map(|s| convert_str_to_super(&s)).collect()
@@ -23,7 +31,7 @@ impl<D: Sized> Repository<Super> for SupersRepository<D> where D: DBDriver {
 
     fn find_by_id(&self, id: &str) -> Result<Super, RepositoryError> {
         let super_str = self.db.find_by_id(id)?;
-        
+
         convert_str_to_super(&super_str)
     }
 
@@ -45,15 +53,13 @@ impl<D: Sized> Repository<Super> for SupersRepository<D> where D: DBDriver {
 fn convert_super_to_str(s: &Super) -> Result<String, RepositoryError> {
     match serde_json::to_string(&s) {
         Ok(supr) => Ok(supr),
-        Err(e) => Err(format!("{}", e))
+        Err(e) => Err(format!("{}", e)),
     }
 }
-    
+
 fn convert_str_to_super(super_str: &str) -> Result<Super, RepositoryError> {
     match serde_json::from_str(super_str) {
         Ok(supr) => Ok(supr),
-        Err(e) => Err(format!("{}", e))
+        Err(e) => Err(format!("{}", e)),
     }
 }
-
-

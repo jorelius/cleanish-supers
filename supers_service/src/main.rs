@@ -1,16 +1,12 @@
-mod drivers;
-mod repositories;
-mod entities;
 mod api;
 mod settings;
-mod usecases;
 
 use std::time::Duration;
 use std::sync::RwLock;
 use std::sync::Arc;
 
 use axum::{
-    routing::{get, post, delete},
+    routing::{get, post},
     http::StatusCode, Router,
     error_handling::HandleErrorLayer,
     Extension,
@@ -23,16 +19,18 @@ use tower_http::{
 use tower_http::request_id::MakeRequestUuid;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::drivers::db::memory::InMemoryDB;
-use crate::entities::supers::Super;
-use crate::repositories::supers::SupersRepository;
-use crate::repositories::Repository;
 use crate::settings::Settings;
 
-use crate::usecases::get_all_supers;
-use crate::usecases::create_super;
-use crate::usecases::get_super;
-use crate::usecases::delete_super;
+use supers_core::{
+    drivers::db::memory::InMemoryDB, 
+    entities::supers::Super, 
+    repositories::{supers::SupersRepository, Repository}
+};
+
+use crate::api::get_all_supers;
+use crate::api::create_super;
+use crate::api::get_super;
+use crate::api::delete_super;
 
 #[tokio::main]
 async fn main() {
@@ -53,10 +51,10 @@ async fn main() {
     // load default supers
     load_bulk_super_data(&db, settings.unwrap().supers);
 
-    // build our application with a single route
+    // build our application with a set of routes
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
-        .route("/supers", get(get_all_supers::execute).post(create_super::execute))
+        .route("/supers", post(create_super::execute).get(get_all_supers::execute))
         .route("/supers/:id", get(get_super::execute).delete(delete_super::execute))
         // Add middleware to all routes
         .layer(
@@ -96,6 +94,6 @@ async fn main() {
 
 fn load_bulk_super_data(db: &Arc<RwLock<SupersRepository<InMemoryDB>>>, supers: Vec<Super>) {
     for supr in supers {
-        db.write().unwrap().create(&supr);
+        db.write().unwrap().create(&supr).unwrap();
     }
 }

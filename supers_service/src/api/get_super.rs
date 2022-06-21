@@ -9,16 +9,16 @@ use axum::{
     Extension,
 };
 
+use supers_core::drivers::db::memory::InMemoryDB;
+use supers_core::repositories::supers::SupersRepository;
+use supers_core::usecases;
 use crate::api::models;
-use crate::drivers::db::memory::InMemoryDB;
-use crate::repositories::supers::SupersRepository;
-use crate::repositories::Repository;
 
 pub(crate) async fn execute(
     Path(id): Path<String>,
     Extension(db): Extension<Arc<RwLock<SupersRepository<InMemoryDB>>>>,
 ) -> impl IntoResponse {
-    let supr = db.read().unwrap().find_by_id(&id).unwrap();
+    let supr = usecases::get_super::execute(id, db).await;
 
     // this will be converted into a JSON response
     // with a status code of `200 Ok`

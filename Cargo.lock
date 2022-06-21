@@ -142,24 +142,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "cleanish-supers"
-version = "0.1.0"
-dependencies = [
- "axum",
- "config",
- "diesel",
- "dotenv",
- "serde",
- "serde_json",
- "tokio",
- "tower",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "uuid",
-]
-
-[[package]]
 name = "config"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -833,6 +815,38 @@ checksum = "66d72b759436ae32898a2af0a14218dbf55efde3feeb170eb623637db85ee1e0"
 dependencies = [
  "libc",
  "winapi",
+]
+
+[[package]]
+name = "supers_core"
+version = "0.1.0"
+dependencies = [
+ "diesel",
+ "dotenv",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
+name = "supers_service"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "config",
+ "diesel",
+ "dotenv",
+ "serde",
+ "serde_json",
+ "supers_core",
+ "tokio",
+ "tower",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]

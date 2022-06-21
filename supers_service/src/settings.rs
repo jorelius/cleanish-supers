@@ -2,7 +2,7 @@ use config::{Config, ConfigError, Environment, File};
 use serde::Deserialize;
 use std::env;
 
-use crate::entities::supers::Super;
+use supers_core::entities::supers::Super;
 
 #[derive(Debug, Deserialize)]
 #[allow(unused)]
@@ -20,10 +20,7 @@ impl Settings {
             // Add in the current environment file
             // Default to 'development' env
             // Note that this file is _optional_
-            .add_source(
-                File::with_name(&format!("config/{}", run_mode))
-                    .required(false),
-            )
+            .add_source(File::with_name(&format!("config/{}", run_mode)).required(false))
             // Add in a local configuration file
             // This file shouldn't be checked in to git
             .add_source(File::with_name("config/local").required(false))
