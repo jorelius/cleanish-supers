@@ -2,7 +2,7 @@ mod api;
 mod settings;
 
 use std::time::Duration;
-use std::sync::RwLock;
+use tokio::sync::RwLock;
 use std::sync::Arc;
 
 use axum::{
@@ -49,7 +49,7 @@ async fn main() {
     let db = Arc::new(RwLock::new(SupersRepository::<InMemoryDB>::new(InMemoryDB::new())));
 
     // load default supers
-    load_bulk_super_data(&db, settings.unwrap().supers);
+    load_bulk_super_data(&db, settings.unwrap().supers).await;
 
     // build our application with a set of routes
     let app = Router::new()
@@ -92,8 +92,8 @@ async fn main() {
         .unwrap();
 }
 
-fn load_bulk_super_data(db: &Arc<RwLock<SupersRepository<InMemoryDB>>>, supers: Vec<Super>) {
+async fn load_bulk_super_data(db: &Arc<RwLock<SupersRepository<InMemoryDB>>>, supers: Vec<Super>) {
     for supr in supers {
-        db.write().unwrap().create(&supr).unwrap();
+        db.write().await.create(&supr).await.unwrap();
     }
 }

@@ -1,4 +1,4 @@
-use std::sync::RwLock;
+use tokio::sync::RwLock;
 use std::sync::Arc;
 
 use crate::drivers::db::memory::InMemoryDB;
@@ -9,5 +9,5 @@ pub async fn execute(
     id: String,
     db: Arc<RwLock<SupersRepository<InMemoryDB>>>,
 ) {
-    let _ = db.write().unwrap().delete(&id).unwrap();
+    let _ = db.write().await.delete(&id).await.unwrap();
 }

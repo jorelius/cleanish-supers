@@ -1,3 +1,5 @@
+use async_trait::async_trait;
+
 use crate::drivers::db::DBDriver;
 use crate::entities::supers::Super;
 use crate::repositories::Repository;
@@ -20,32 +22,33 @@ where
     }
 }
 
+#[async_trait]
 impl<D: Sized> Repository<Super> for SupersRepository<D>
 where
-    D: DBDriver,
+    D: DBDriver + Send + Sync,
 {
-    fn find_all(&mut self) -> Result<Vec<Super>, RepositoryError> {
+    async fn find_all(&mut self) -> Result<Vec<Super>, RepositoryError> {
         let supers = self.db.retrieve_all().unwrap();
         supers.iter().map(|s| convert_str_to_super(&s)).collect()
     }
 
-    fn find_by_id(&self, id: &str) -> Result<Super, RepositoryError> {
+    async fn find_by_id(&self, id: &str) -> Result<Super, RepositoryError> {
         let super_str = self.db.find_by_id(id)?;
 
         convert_str_to_super(&super_str)
     }
 
-    fn create(&mut self, spr: &Super) -> Result<(), RepositoryError> {
+    async fn create(&mut self, spr: &Super) -> Result<(), RepositoryError> {
         let super_str = convert_super_to_str(&spr)?;
         self.db.create(&spr.id, super_str.as_str())
     }
 
-    fn update(&mut self, spr: &Super) -> Result<(), RepositoryError> {
+    async fn update(&mut self, spr: &Super) -> Result<(), RepositoryError> {
         let super_str = convert_super_to_str(&spr)?;
         self.db.update(&spr.id, super_str.as_str())
     }
 
-    fn delete(&mut self, id: &str) -> Result<(), RepositoryError> {
+    async fn delete(&mut self, id: &str) -> Result<(), RepositoryError> {
         self.db.delete(id)
     }
 }

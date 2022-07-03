@@ -1,4 +1,4 @@
-use std::sync::RwLock;
+use tokio::sync::RwLock;
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
@@ -11,7 +11,7 @@ pub async fn execute(
     id: String,
     db: Arc<RwLock<SupersRepository<InMemoryDB>>>,
 ) -> Super {
-    let supr = db.write().unwrap().find_by_id(&id).unwrap();
+    let supr = db.write().await.find_by_id(&id).await.unwrap();
     
     supr
 }

@@ -1,5 +1,5 @@
 use uuid::Uuid;
-use std::sync::RwLock;
+use tokio::sync::RwLock;
 use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +19,7 @@ pub async fn execute(
         powers: payload.powers,
     };
 
-    db.write().unwrap().create(&sup).unwrap();
+    db.write().await.create(&sup).await.unwrap();
 
     sup.id // return id
 }
